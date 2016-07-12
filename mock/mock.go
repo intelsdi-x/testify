@@ -76,6 +76,11 @@ func (c *Call) unlock() {
 	c.Parent.mutex.Unlock()
 }
 
+// String returns call string.
+func (c *Call) String() string {
+	return fmt.Sprintf("%s(%s)", c.Method, c.Arguments.String())
+}
+
 // Return specifies the return arguments for the expectation.
 //
 //    Mock.On("DoSomething").Return(errors.New("failed"))
@@ -172,6 +177,8 @@ type Mock struct {
 	testData objx.Map
 
 	mutex sync.Mutex
+
+	label string
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
@@ -362,25 +369,43 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
+
+	if len(expectedCalls) > 0 {
+		t.Logf("------")
+	}
 	for _, expectedCall := range expectedCalls {
 		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
 			somethingMissing = true
 			failedExpectations++
-			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+			t.Logf("\u274C\tFAIL: %s%s method was not called.", m.printLabel(), expectedCall.String())
 		} else {
 			m.mutex.Lock()
 			if expectedCall.Repeatability > 0 {
 				somethingMissing = true
 				failedExpectations++
+				t.Logf("\u274C\tFAIL: %s%s need to make %d more call(s).",
+					m.printLabel(),
+					expectedCall.String(),
+					expectedCall.Repeatability,
+				)
 			} else {
-				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+				// TODO(bp): This log is useful, but maybe we would like to have them only
+				// in case of error?
+				t.Logf("\u2705\t%s%s", m.printLabel(), expectedCall.String())
 			}
 			m.mutex.Unlock()
 		}
 	}
 
 	if somethingMissing {
-		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\t" +
+		"The code you are testing needs to make %d more call(s).\n\tat: %s",
+			len(expectedCalls)-failedExpectations,
+			len(expectedCalls),
+			failedExpectations,
+			assert.CallerInfo(),
+
+		)
 	}
 
 	return !somethingMissing
@@ -444,6 +469,24 @@ func (m *Mock) calls() []Call {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return append([]Call{}, m.Calls...)
+}
+
+// Label attaches the label to the mock.
+// It is confusing when you have couple of mocks for the same type.
+// Ability to have them optionally labeled is crucial.
+// Label holds an extra string attached to this mock. It will be used for logging.
+func (m *Mock) Label(label string) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.label = label
+}
+
+func (m *Mock) printLabel() string {
+	if m.label == "" {
+		return ""
+	}
+	return fmt.Sprintf("[%s] ", m.label)
 }
 
 /*

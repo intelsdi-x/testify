@@ -3,6 +3,23 @@ Testify - Thou Shalt Write Tests
 
 [![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![GoDoc](https://godoc.org/github.com/stretchr/testify?status.svg)](https://godoc.org/github.com/stretchr/testify)
 
+
+Changes versus master
+-------------------------------------------------------------------------------------------
+In `mock.go`:
+- Added optional labels for mocks and printed them in AssertExpectation method.
+E.g
+```
+mock.go:390: ❌  FAIL: [kube-apiserver] Address() need to make 1 more call(s).
+```
+
+- Printed each expectation fail instead in addition to sometimes misleading summary log.
+- Some small refactor in logging call.
+- Line dividing one AssertExpectation from another.
+
+Description
+-------------------------------------------------------------------------------------------
+
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
 Features include:
@@ -19,7 +36,6 @@ Get started:
   * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
   * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
-
 
 
 [`assert`](http://godoc.org/github.com/stretchr/testify/assert "API documentation") package
