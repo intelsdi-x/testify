@@ -1,6 +1,19 @@
 Testify - Thou Shalt Write Tests
 ================================
 
+## Bplotka changes
+
+In `mock.go`:
+- Added optional labels for mocks and printed them in AssertExpectation method.
+E.g
+` mock.go:390: ❌  FAIL: [kube-apiserver] Address() need to make 1 more call(s).`
+
+- Printed each expectation fail instead in addition to sometimes misleading summary log.
+- Some small refactor in logging call.
+- Line dividing one AssertExpectation from another.
+
+
+
 [![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![GoDoc](https://godoc.org/github.com/stretchr/testify?status.svg)](https://godoc.org/github.com/stretchr/testify)
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
